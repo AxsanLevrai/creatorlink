@@ -1,7 +1,8 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
-const nextConfig = { typescript: { ignoreBuildErrors: true }, eslint: { ignoreDuringBuilds: true }, output: "standalone",
-  reactStrictMode: true,
+const nextConfig = {
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
+  experimental: { missingSuspenseWithCSRBailout: false },
   images: {
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost' },
@@ -9,22 +10,5 @@ const nextConfig = { typescript: { ignoreBuildErrors: true }, eslint: { ignoreDu
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        ],
-      },
-    ];
-  },
 };
-
 module.exports = nextConfig;
-
-
-
-
