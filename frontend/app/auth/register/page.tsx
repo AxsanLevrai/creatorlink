@@ -38,7 +38,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const { data: res } = await authAPI.register(data);
+      const { data: res } = await authAPI.register(data as any);
       setTokens(res.tokens);
       setUser(res.user);
       toast.success('Account created! Please verify your email.');
@@ -165,4 +165,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
 
