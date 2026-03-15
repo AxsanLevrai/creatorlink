@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -285,3 +286,4 @@ export default function SearchCreatorsPage() {
     </>
   );
 }
+

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -288,3 +289,4 @@ export default function MessagesPage() {
     </>
   );
 }
+
