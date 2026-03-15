@@ -29,7 +29,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { role: defaultRole },
   });
 
@@ -165,3 +165,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
