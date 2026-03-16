@@ -1,47 +1,37 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/lib/auth';
-import { signIn } from 'next-auth/react';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 
-const schema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-type FormData = z.infer<typeof schema>;
-
 export default function LoginPage() {
-  const { login } = useAuth();
   const router = useRouter();
-  const params = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: 'https://creatorlink-axsan.vercel.app/dashboard' }
+    });
+  };
 
-  const onSubmit = async (data: FormData) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    try {
-      await login(data.email, data.password);
-      toast.success('Welcome back!');
-      router.push(params.get('redirect') || '/dashboard');
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { toast.error(error.message); setLoading(false); return; }
+    toast.success('Bienvenue !');
+    router.push('/dashboard');
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#1e1040] via-brand-800 to-[#1a3a5c] flex-col justify-center items-center p-12 text-white">
         <Link href="/" className="flex items-center gap-3 mb-16">
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -51,7 +41,7 @@ export default function LoginPage() {
         </Link>
         <blockquote className="text-center max-w-sm">
           <p className="text-xl font-light leading-relaxed text-white/90 mb-6">
-            "CreatorLink helped me land 3 brand deals in my first month. The platform is exactly what the creator economy needed."
+            "CreatorLink helped me land 3 brand deals in my first month."
           </p>
           <div className="flex items-center justify-center gap-3">
             <div className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center font-bold">SR</div>
@@ -62,24 +52,11 @@ export default function LoginPage() {
           </div>
         </blockquote>
       </div>
-
-      {/* Right panel */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50">
         <div className="w-full max-w-md">
-          <div className="mb-8">
-            <Link href="/" className="text-brand-600 font-bold text-lg lg:hidden block mb-6">CreatorLink</Link>
-            <h1 className="text-3xl font-black mb-2">Welcome back</h1>
-            <p className="text-gray-500">Sign in to your CreatorLink account</p>
-          </div>
-
-          {params.get('session') === 'expired' && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
-              Your session expired. Please sign in again.
-            </div>
-          )}
-
-          {/* Google OAuth */}
-          <button onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          <h1 className="text-3xl font-black mb-2">Welcome back</h1>
+          <p className="text-gray-500 mb-8">Sign in to your CreatorLink account</p>
+          <button onClick={handleGoogle}
             className="flex items-center justify-center gap-3 w-full border border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition-colors mb-6 bg-white">
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -89,41 +66,34 @@ export default function LoginPage() {
             </svg>
             <span className="text-sm font-medium text-gray-700">Continue with Google</span>
           </button>
-
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400 font-medium">OR</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1.5">Email</label>
-              <input {...register('email')} type="email" placeholder="you@example.com" className="input" autoComplete="email" />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+              <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="you@example.com" className="input" />
             </div>
-
             <div>
               <div className="flex justify-between mb-1.5">
                 <label className="text-sm font-medium">Password</label>
                 <Link href="/auth/forgot-password" className="text-xs text-brand-600 hover:underline">Forgot password?</Link>
               </div>
               <div className="relative">
-                <input {...register('password')} type={showPass ? 'text' : 'password'} placeholder="••••••••" className="input pr-10" autoComplete="current-password" />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <input value={password} onChange={e => setPassword(e.target.value)} type={showPass ? 'text' : 'password'} placeholder="••••••••" className="input pr-10" />
+                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
-
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
-
           <p className="text-center text-sm text-gray-500 mt-6">
-            Don't have an account?{' '}
+            Don not have an account?{' '}
             <Link href="/auth/register" className="text-brand-600 font-semibold hover:underline">Create one free</Link>
           </p>
         </div>
@@ -131,7 +101,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
-
-
