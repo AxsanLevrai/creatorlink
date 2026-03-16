@@ -17,7 +17,7 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://creatorlink-axsan.vercel.app/dashboard' }
+      options: { redirectTo: 'https://creatorlink-axsan.vercel.app/auth/callback' }
     });
   };
 
