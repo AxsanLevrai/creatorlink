@@ -3,7 +3,11 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: { missingSuspenseWithCSRBailout: false },
-  output: 'export',
-  images: { unoptimized: true },
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+    ],
+  },
 };
 module.exports = nextConfig;
